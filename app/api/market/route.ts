@@ -11,7 +11,6 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   try {
     await connectDB();
-
     // Fetch all stocks and cryptos sorted by asset type and name
     const marketData = await Market.find({})
       .sort({ assetType: 1, symbol: 1 })
