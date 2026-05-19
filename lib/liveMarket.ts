@@ -3,7 +3,7 @@ import axios from "axios";
 import { connectDB } from "@/lib/db";
 import { Market } from "@/lib/models/Market";
 
-const API_KEY = process.env.FINNHUB_API_KEY || "YOUR_FINNHUB_KEY";
+const API_KEY = process.env.FINNHUB_API_KEY || "d7gsak1r01qmqj46iadgd7gsak1r01qmqj46iae0";
 
 const STOCK_SYMBOLS = ["AAPL", "TSLA", "NVDA", "MSFT", "AMZN"];
 const CRYPTO_SYMBOLS = ["BINANCE:BTCUSDT", "BINANCE:ETHUSDT", "BINANCE:SOLUSDT", "BINANCE:XRPUSDT", "BINANCE:BNBUSDT"];
