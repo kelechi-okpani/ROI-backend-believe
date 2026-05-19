@@ -16,8 +16,8 @@ export async function OPTIONS(request: NextRequest) {
 export async function PATCH(req: NextRequest, { params }: RouteParams) {
   try {
     // 1. Admin Authorization Guard
-    const session = await auth();
-    if (!session || session.user?.role !== "ADMIN") {
+    const session = await auth(req);
+    if (!session || session?.role !== "ADMIN") {
       return corsResponse({ error: "Forbidden: Administrative authentication required" }, 403, req);
     }
 

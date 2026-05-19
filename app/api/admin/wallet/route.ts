@@ -10,11 +10,13 @@ export async function OPTIONS(request: NextRequest) {
   return corsOptionsResponse(request.headers.get("origin"));
 }
 
+
+
 export async function POST(req: NextRequest) {
   try {
     // 1. Admin Authorization Check
-    const session = await auth();
-    if (!session || session.user?.role !== "ADMIN") {
+    const session = await auth(req);
+    if (!session || session?.role !== "ADMIN") {
       return corsResponse({ error: "Forbidden: Administrative access required" }, 403, req);
     }
 

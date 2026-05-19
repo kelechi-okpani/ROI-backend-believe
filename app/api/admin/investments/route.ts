@@ -15,9 +15,9 @@ export async function OPTIONS(request: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     // 1. Admin Authorization Guard — Pass req directly to extract session data safely
-    const session = await auth();
+    const session = await auth(req);
     
-    if (!session || session.user?.role !== "ADMIN") {
+    if (!session || session?.role !== "ADMIN") {
       return corsResponse({ error: "Forbidden: Access Denied" }, 403, req);
     }
 

@@ -10,9 +10,9 @@ export async function OPTIONS(request: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
+    const session = await auth(req);
     
-    if (!session || session.user?.role !== "ADMIN") {
+    if (!session || session?.role !== "ADMIN") {
       return corsResponse({ error: "Forbidden" }, 403, req);
     }
 

@@ -14,13 +14,13 @@ export async function OPTIONS(request: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     // 1. Session & Auth Check
-    const session = await auth();
-    if (!session || !session.user?.id) {
+    const session = await auth(req);
+    if (!session || !session?.id) {
       return corsResponse({ error: "Unauthorized access token" }, 401, req);
     }
 
     await connectDB();
-    const userObjectId = new mongoose.Types.ObjectId(session.user.id);
+    const userObjectId = new mongoose.Types.ObjectId(session?.id);
 
     // 2. Fetch or create the base Wallet Ledger Record first
     let wallet = await Wallet.findOne({ userId: userObjectId });

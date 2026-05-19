@@ -8,16 +8,18 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
+
+
 export async function OPTIONS(request: NextRequest) {
     return corsOptionsResponse(request.headers.get("origin"));
 }
 
 export async function PATCH(req: NextRequest, { params }: RouteParams) {
   try {
-    const session = await auth();
+    const session = await auth(req);
     
     // 1. Authorization Check
-    if (!session || session.user?.role !== "ADMIN") {
+    if (!session || session?.role !== "ADMIN") {
       return corsResponse({ error: "Forbidden" }, 403, req);
     }
 

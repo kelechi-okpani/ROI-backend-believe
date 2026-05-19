@@ -10,10 +10,12 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
+
+
 export async function PATCH(req: NextRequest, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (!session || session.user?.role !== "ADMIN") {
+    const session = await auth(req);
+    if (!session || session?.role !== "ADMIN") {
       return corsResponse({ error: "Forbidden: Administrative access required" }, 403, req);
     }
 

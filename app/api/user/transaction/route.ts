@@ -12,12 +12,12 @@ export async function OPTIONS(request: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) return corsResponse({ error: "Unauthorized" }, 401, req);
+    const session = await auth(req);
+    if (!session?.id) return corsResponse({ error: "Unauthorized" }, 401, req);
 
     await connectDB();
 
-    const transactions = await Transaction.find({ userId: session.user.id })
+    const transactions = await Transaction.find({ userId: session?.id })
       .sort({ createdAt: -1 });
 
     return corsResponse(transactions, 200, req);
@@ -27,11 +27,13 @@ export async function GET(req: NextRequest) {
   }
 }
 
+
+
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
+    const session = await auth(req);
     
-    if (!session || !session.user?.id) {
+    if (!session || !session?.id) {
       return corsResponse({ error: "Unauthorized" }, 401, req);
     }
 
@@ -45,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Withdrawal Logic: Debit upfront to avoid double-spending
     if (type === "WITHDRAWAL") {
-      const wallet = await Wallet.findOne({ userId: session.user.id });
+      const wallet = await Wallet.findOne({ userId: session?.id });
       if (!wallet || wallet.profitBalance < amount) {
         return corsResponse({ error: "Insufficient profit balance" }, 400, req);
       }
@@ -57,7 +59,7 @@ export async function POST(req: NextRequest) {
 
     // 3. Create the Transaction
     const transaction = await Transaction.create({
-      userId: session.user.id,
+      userId: session.id,
       amount,
       type,
       paymentProof: type === "DEPOSIT" ? paymentProof : null,

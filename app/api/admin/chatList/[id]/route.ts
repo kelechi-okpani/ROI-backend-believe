@@ -19,8 +19,8 @@ export async function OPTIONS(request: NextRequest) {
  */
 export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (session?.user?.role !== "ADMIN") {
+    const session = await auth(req);
+    if (session?.role !== "ADMIN") {
       return corsResponse({ error: "Forbidden: Administrative access required" }, 403, req);
     }
 
@@ -51,8 +51,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
  */
 export async function POST(req: NextRequest, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (session?.user?.role !== "ADMIN") {
+    const session = await auth(req);
+    if (session?.role !== "ADMIN") {
       return corsResponse({ error: "Forbidden: Administrative access required" }, 403, req);
     }
 
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     // Map internal key strings directly into standard schema design expectations
     const adminMessageObj = {
-      senderId: session.user.id,
+      senderId: session?.id,
       senderType: "ADMIN",
       text: messageText?.trim() || "",
       attachments: attachments || [],

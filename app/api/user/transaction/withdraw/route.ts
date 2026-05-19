@@ -12,8 +12,8 @@ export async function OPTIONS(request: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     // 1. Session & Auth Check
-    const session = await auth();
-    if (!session || !session.user?.id) {
+    const session = await auth(req);
+    if (!session || !session?.id) {
       return corsResponse({ error: "Unauthorized" }, 401, req);
     }
 
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Balance Check
-    const wallet = await Wallet.findOne({ userId: session.user.id });
+    const wallet = await Wallet.findOne({ userId: session?.id });
 
     if (!wallet) {
       return corsResponse({ error: "Wallet account not found" }, 404, req);
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
 
     // 5. Create Withdrawal Transaction
     const withdrawal = await Transaction.create({
-      userId: session.user.id,
+      userId: session?.id,
       amount,
       method: "USDT/BTC_TRANSFER", 
       type: "WITHDRAWAL",

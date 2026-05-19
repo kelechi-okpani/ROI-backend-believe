@@ -18,8 +18,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   const session = await mongoose.startSession();
   
   try {
-    const authSession = await auth();
-    if (!authSession || authSession.user?.role !== "ADMIN") {
+    const authSession = await auth(req);
+    if (!authSession || authSession?.role !== "ADMIN") {
       return corsResponse({ error: "Forbidden: Access Denied" }, 403, req);
     }
 

@@ -10,8 +10,8 @@ export async function OPTIONS(request: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session || !session.user?.id) {
+    const session = await auth(req);
+    if (!session || !session?.id) {
       return corsResponse({ error: "Unauthorized" }, 401, req);
     }
 
@@ -22,8 +22,8 @@ export async function POST(req: NextRequest) {
       return corsResponse({ error: "Cannot send an empty message" }, 400, req);
     }
 
-    const isAdmin = session.user.role === "ADMIN";
-    const threadOwnerId = isAdmin ? receiverId : session.user.id;
+    const isAdmin = session?.role === "ADMIN";
+    const threadOwnerId = isAdmin ? receiverId : session?.id;
 
     if (!threadOwnerId) {
       return corsResponse({ error: "Target User ID is required" }, 400, req);
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
     // FIXED: Maps structural type changes matching standard layout parameters cleanly
     const newMessage = {
-      senderId: session.user.id,
+      senderId: session?.id,
       senderType: isAdmin ? "ADMIN" : "USER",
       text: text?.trim() || "",
       attachments: attachments || [],

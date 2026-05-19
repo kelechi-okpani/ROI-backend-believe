@@ -1,128 +1,117 @@
-import { NextRequest } from "next/server";
-import bcrypt from "bcryptjs";
-import { connectDB } from "@/lib/db";
-import { User } from "@/lib/models/User";
-import { corsResponse, corsOptionsResponse } from "@/lib/cors";
-
-export async function OPTIONS(request: NextRequest) {
-  return corsOptionsResponse(request.headers.get("origin"));
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    await connectDB();
-    const { email, password } = await req.json();
-
-    if (!email || !password) {
-      return corsResponse({ message: "Email and password are required" }, 400, req);
-    }
-
-    const user = await User.findOne({ email: email.toLowerCase() });
-
-    if (!user || !user.password) {
-      return corsResponse({ message: "Invalid email or password" }, 401, req);
-    }
-
-    const isValid = await bcrypt.compare(password, user.password);
-
-    if (!isValid) {
-      return corsResponse({ message: "Invalid email or password" }, 401, req);
-    }
-
-    // Return pure JSON user payload back to the frontend's authorize() fetcher
-    return corsResponse({
-      id: user._id.toString(),
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      role: user.role,
-    }, 200, req);
-
-  } catch (error) {
-    console.error("BACKEND_LOGIN_ERROR:", error);
-    return corsResponse({ message: "Internal server error" }, 500, req);
-  }
-}
-
-// import { NextRequest, NextResponse } from "next/server";
-// import { signIn } from "@/lib/auth";
-// import { AuthError } from "next-auth";
-// import { corsOptionsResponse, corsResponse } from "@/lib/cors";
+// import { NextRequest } from "next/server";
 // import bcrypt from "bcryptjs";
-// import { User } from "@/lib/models/User";
 // import { connectDB } from "@/lib/db";
+// import { User } from "@/lib/models/User";
+// import { corsResponse, corsOptionsResponse } from "@/lib/cors";
 
 // export async function OPTIONS(request: NextRequest) {
 //   return corsOptionsResponse(request.headers.get("origin"));
 // }
 
-// export async function POST(request: Request) {
+// export async function POST(req: NextRequest) {
 //   try {
 //     await connectDB();
-//     const { email, password } = await request.json();
+//     const { email, password } = await req.json();
 
 //     if (!email || !password) {
-//       return NextResponse.json({ message: "Missing credentials" }, { status: 400 });
+//       return corsResponse({ message: "Email and password are required" }, 400, req);
 //     }
 
 //     const user = await User.findOne({ email: email.toLowerCase() });
 
 //     if (!user || !user.password) {
-//       return NextResponse.json({ message: "Invalid email or password" }, { status: 401 });
+//       return corsResponse({ message: "Invalid email or password" }, 401, req);
 //     }
 
 //     const isValid = await bcrypt.compare(password, user.password);
 
 //     if (!isValid) {
-//       return NextResponse.json({ message: "Invalid email or password" }, { status: 401 });
+//       return corsResponse({ message: "Invalid email or password" }, 401, req);
 //     }
 
-//     // Return pure data back to the Frontend (Port 3000)
-//     return NextResponse.json({
+//     // Return pure JSON user payload back to the frontend's authorize() fetcher
+//     return corsResponse({
 //       id: user._id.toString(),
 //       firstName: user.firstName,
 //       lastName: user.lastName,
 //       email: user.email,
 //       role: user.role,
-//     }, { status: 200 });
+//     }, 200, req);
 
 //   } catch (error) {
-//     return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+//     console.error("BACKEND_LOGIN_ERROR:", error);
+//     return corsResponse({ message: "Internal server error" }, 500, req);
 //   }
 // }
 
 
-// export async function POST(req: NextRequest) {
-//   try {
-//     const body = await req.json();
-//     const { email, password } = body;
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
-//     if (!email || !password) {
-//       return corsResponse({ error: "Email and password required" }, 400, req);
-//     }
+import { NextResponse } from "next/server";
 
-//     // This triggers the authorize callback in lib/auth.ts
-//     // Note: NextAuth v5 (Auth.js) signIn can sometimes throw redirects even with redirect: false
-//     await signIn("credentials", {
-//       email,
-//       password,
-//       redirect: false,
-//     });
+import { connectDB } from "@/lib/db";
+import { User } from "@/lib/models/User";
 
-//     return corsResponse({ message: "Login successful" }, 200, req);
 
-//   } catch (error) {
-//     if (error instanceof AuthError) {
-//       switch (error.type) {
-//         case "CredentialsSignin":
-//           return corsResponse({ error: "Invalid credentials" }, 401, req);
-//         default:
-//           return corsResponse({ error: "Authentication failed" }, 500, req);
-//       }
-//     }
-    
-//     // Catch-all for non-auth errors (like database connection issues)
-//     console.error("Login Error:", error);
-//     return corsResponse({ error: "Internal Server Error" }, 500, req);
-//   }
-// }
+
+export async function POST(req: Request) {
+  try {
+    await connectDB();
+
+    const body = await req.json();
+
+    const user = await User.findOne({
+      email: body.email,
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
+    }
+
+    const valid = await bcrypt.compare(
+      body.password,
+      user.password
+    );
+
+    if (!valid) {
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
+    }
+
+    const token = jwt.sign(
+      {
+        id: user._id.toString(),
+        email: user.email,
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+      process.env.AUTH_SECRET!,
+      {
+        expiresIn: "30d",
+      }
+    );
+
+    return NextResponse.json({
+      id: user._id.toString(),
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      token,
+    });
+  } catch (error) {
+    console.log(error);
+
+    return NextResponse.json(
+      { error: "Server error" },
+      { status: 500 }
+    );
+  }
+}

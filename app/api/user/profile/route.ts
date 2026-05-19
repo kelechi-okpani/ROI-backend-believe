@@ -1,8 +1,11 @@
+
+
 import { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { User } from "@/lib/models/User";
 import { corsOptionsResponse, corsResponse } from "@/lib/cors";
+
 
 // Force Dynamic behavior to prevent Next.js from caching the GET request as a static page
 export const dynamic = "force-dynamic";
@@ -14,16 +17,16 @@ export async function OPTIONS(request: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     // 1. Session Check
-    const session = await auth();
-    
-    if (!session?.user?.id) {
+    const session = await auth(req);
+
+    if (!session?.id) {
       return corsResponse({ error: "Unauthorized" }, 401, req);
     }
 
     await connectDB();
 
     // 2. Fetch User (Using .lean() for performance)
-    const user = await User.findById(session.user.id)
+    const user = await User.findById(session?.id)
       .select("-password -resetPasswordToken -resetPasswordExpires -verificationOtp -verificationOtpExpires")
       .lean();
     
@@ -40,8 +43,9 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const session = await auth(req);
+        // const session = await getAuthUser(req);
+    if (!session?.id) {
       return corsResponse({ error: "Unauthorized" }, 401, req);
     }
 
@@ -61,9 +65,11 @@ export async function PATCH(req: NextRequest) {
        return corsResponse({ error: "No changes provided" }, 400, req);
     }
 
+
+
     // 2. Execute Update
     const updatedUser = await User.findByIdAndUpdate(
-      session.user.id,
+      session?.id,
       { $set: updateData },
       { new: true, runValidators: true }
     ).select("-password -resetPasswordToken -resetPasswordExpires -verificationOtp -verificationOtpExpires");

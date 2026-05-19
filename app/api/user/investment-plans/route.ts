@@ -12,7 +12,7 @@ export async function OPTIONS(request: NextRequest) {
 export async function GET(req: NextRequest | any) {
   try {
     // FIXED: Swapped to backend-safe session retrieval helper
-    const session = await auth();
+    const session = await auth(req);
     if (!session) {
       return corsResponse({ error: "Unauthorized" }, 401, req);
     }

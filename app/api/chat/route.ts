@@ -10,8 +10,8 @@ export async function OPTIONS(request: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session || !session.user?.id) {
+    const session = await auth(req);
+    if (!session || !session?.id) {
       return corsResponse({ error: "Unauthorized" }, 401, req);
     }
 
@@ -22,13 +22,13 @@ export async function GET(req: NextRequest) {
 
     let targetId: string;
 
-    if (session.user.role === "ADMIN") {
+    if (session?.role === "ADMIN") {
       if (!adminSelectedUserId) {
         return corsResponse({ error: "User ID required for Admin view" }, 400, req);
       }
       targetId = adminSelectedUserId;
     } else {
-      targetId = session.user.id;
+      targetId = session?.id;
     }
 
     // FIXED: Dropped old broken population query parameters targeting subdocument arrays

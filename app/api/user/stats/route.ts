@@ -6,19 +6,21 @@ import { Investment } from "@/lib/models/Investment";
 import { Transaction } from "@/lib/models/Transaction";
 import { corsOptionsResponse, corsResponse } from "@/lib/cors";
 
+
+
 export async function OPTIONS(request: NextRequest) {
   return corsOptionsResponse(request.headers.get("origin"));
 }
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const session = await auth(req);
+    if (!session?.id) {
       return corsResponse({ error: "Unauthorized" }, 401, req);
     }
 
     await connectDB();
-    const userId = session.user.id;
+    const userId = session.id;
 
     // 1. Fetch data in parallel for maximum performance
     const [wallet, activeInvestments, recentTransactions] = await Promise.all([

@@ -17,8 +17,8 @@ export async function OPTIONS(request: NextRequest) {
 // GET: Fetch investments (Admin sees all, User sees personal)
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session || !session.user?.id) {
+    const session = await auth(req);
+    if (!session || !session?.id) {
       return corsResponse({ error: "Unauthorized" }, 401, req);
     }
 
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
 
     let dbInvestments;
 
-    if (session.user.role === "ADMIN") {
+    if (session?.role === "ADMIN") {
       // Admin: See everything with user details
       dbInvestments = await Investment.find({})
         .populate("userId", "firstName lastName email")
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
         .lean();
     } else {
       // User: See only their own history
-      dbInvestments = await Investment.find({ userId: session.user.id })
+      dbInvestments = await Investment.find({ userId: session?.id })
         .populate("planId", "name")
         .sort({ createdAt: -1 })
         .lean();
@@ -68,9 +68,9 @@ export async function GET(req: NextRequest) {
 // POST: Create a new investment request
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
+    const session = await auth(req);
 
-    if (!session || !session.user?.id) {
+    if (!session || !session?.id) {
       return corsResponse({ error: "Unauthorized" }, 401, req);
     }
 
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
     // 1. Fetch Plan & Wallet
     const [plan, wallet] = await Promise.all([
       InvestmentPlan.findById(planId),
-      Wallet.findOne({ userId: session.user.id })
+      Wallet.findOne({ userId: session?.id })
     ]);
 
     if (!plan) return corsResponse({ error: "Investment plan not found" }, 404, req);
@@ -114,8 +114,8 @@ export async function POST(req: NextRequest) {
     await wallet.save();
 
     const investment = await Investment.create({
-      userId: session.user.id,
-      planId: plan._id,
+      userId: session?.id,
+      planId: plan?._id,
       amount,
       dailyProfit,
       totalExpectedReturn,

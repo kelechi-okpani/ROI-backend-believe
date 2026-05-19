@@ -11,8 +11,8 @@ export async function OPTIONS(request: NextRequest) {
 export async function GET(req: NextRequest) {
     try {
         // 1. Admin Authorization Check
-        const session = await auth();
-        if (session?.user?.role !== "ADMIN") {
+        const session = await auth(req);
+        if (session?.role !== "ADMIN") {
             return corsResponse({ error: "Forbidden" }, 403, req);
         }
 

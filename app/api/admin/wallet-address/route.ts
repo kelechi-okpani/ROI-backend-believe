@@ -15,11 +15,8 @@ export async function OPTIONS(request: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     // 1. Admin Authorization Guard — Pass req directly to extract session data safely
-    const session = await auth();
-    // if (!session || session.user?.role !== "ADMIN") {
-    //   return corsResponse({ error: "Forbidden: Administrative access required" }, 403, req);
-    // }
-
+    const session = await auth(req);
+ 
       if (!session) {
       return corsResponse({ error: "Forbidden: Authentication  required" }, 403, req);
     }
@@ -44,8 +41,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     // 1. Admin Authorization Guard — Pass req directly to extract session data safely
-    const session = await auth();
-    if (!session || session.user?.role !== "ADMIN") {
+    const session = await auth(req);
+    if (!session || session?.role !== "ADMIN") {
       return corsResponse({ error: "Forbidden: Administrative access required" }, 403, req);
     }
 

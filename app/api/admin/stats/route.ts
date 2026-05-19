@@ -10,11 +10,13 @@ export async function OPTIONS(request: NextRequest) {
   return corsOptionsResponse(request.headers.get("origin"));
 }
 
+
+
 export async function GET(req: NextRequest) {
   try {
     // 1. Admin Authorization Guard
-    const session = await auth();
-    if (!session || session.user?.role !== "ADMIN") {
+    const session = await auth(req);
+    if (!session || session?.role !== "ADMIN") {
       return corsResponse({ error: "Forbidden: Administrative access required" }, 403, req);
     }
 
@@ -23,9 +25,7 @@ export async function GET(req: NextRequest) {
     // 2. Parallel Deep Documents Execution (using .lean() for faster execution)
     const [users, investments, transactions] = await Promise.all([
       // User.find({}).sort({ createdAt: -1 }).lean(),
-      User.find({ role: { $ne: "SUPER_ADMIN" } })
-    .sort({ createdAt: -1 })
-    .lean(),
+      User.find({ role: { $ne: "SUPER_ADMIN" } }).sort({ createdAt: -1 }).lean(),
       Investment.find({})
         .populate("userId", "firstName lastName email")
         .populate("planId", "name roiPercentage durationDays")
