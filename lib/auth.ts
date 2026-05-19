@@ -49,7 +49,8 @@ declare module "@auth/core/jwt" {
     id: string;
     firstName: string;
     lastName: string;
-    role: string;
+    // role: string;
+    role: "USER" | "ADMIN" | "SUPER_ADMIN"; 
   }
 }
 
