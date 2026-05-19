@@ -28,12 +28,15 @@ const InvestmentPlanSchema = new Schema<IInvestmentPlan>(
       required: [true, "Minimum investment amount is required"],
       min: [0, "Amount cannot be negative"]
     },
-    maxAmount: { 
+   maxAmount: { 
       type: Number, 
       required: [true, "Maximum investment amount is required"],
       validate: {
-        validator: function(this: IInvestmentPlan, value: number) {
-          return value >= this.minAmount;
+        // ⚡️ FIX: Safely retrieve context validation fallback properties to prevent serverless execution crashes
+        validator: function(this: any, value: number) {
+          const doc = this?.getUpdate ? this.getUpdate().$set : this;
+          if (!doc || doc.minAmount === undefined) return true; 
+          return value >= doc.minAmount;
         },
         message: "Maximum amount must be greater than or equal to minimum amount"
       }
