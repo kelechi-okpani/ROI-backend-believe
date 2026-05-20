@@ -1,13 +1,13 @@
 export const calculateDailyROI = (amount: number, roi: number, days: number) => {
-  // Example: 10% ROI on $1000 = $100 profit. 
-  // Total Return = $1100.
-  // Daily Profit = $100 / days.
-  const totalProfit = (amount * roi) / 100;
-  const totalExpectedReturn = amount + totalProfit;
-  const dailyProfit = totalProfit / days;
+  // Use integer cents to prevent floating-point precision issues
+  const amountInCents = Math.round(amount * 100);
+  const totalProfitInCents = Math.round((amountInCents * roi) / 100);
+  
+  const dailyProfit = (totalProfitInCents / days) / 100;
+  const totalExpectedReturn = (amountInCents + totalProfitInCents) / 100;
 
   return {
-    dailyProfit: parseFloat(dailyProfit.toFixed(2)),
-    totalExpectedReturn: parseFloat(totalExpectedReturn.toFixed(2))
+    dailyProfit: Number(dailyProfit.toFixed(2)),
+    totalExpectedReturn: Number(totalExpectedReturn.toFixed(2))
   };
 };

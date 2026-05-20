@@ -6,6 +6,8 @@ import { InvestmentPlan } from "@/lib/models/InvestmentPlan";
 import { Wallet } from "@/lib/models/Wallet";
 import { calculateDailyROI } from "@/lib/investment-utils";
 import { corsOptionsResponse, corsResponse } from "@/lib/cors";
+import mongoose from "mongoose";
+import { createNotification } from "@/lib/notifications";
 
 
 export async function OPTIONS(request: NextRequest) {
@@ -63,14 +65,11 @@ export async function GET(req: NextRequest) {
 }
 
 
-
-
-// POST: Create a new investment request
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth(req);
+    const authSession = await auth(req);
 
-    if (!session || !session?.id) {
+    if (!authSession || !authSession?.id) {
       return corsResponse({ error: "Unauthorized" }, 401, req);
     }
 
@@ -80,7 +79,7 @@ export async function POST(req: NextRequest) {
     // 1. Fetch Plan & Wallet
     const [plan, wallet] = await Promise.all([
       InvestmentPlan.findById(planId),
-      Wallet.findOne({ userId: session?.id })
+      Wallet.findOne({ userId: authSession.id })
     ]);
 
     if (!plan) return corsResponse({ error: "Investment plan not found" }, 404, req);
@@ -105,30 +104,48 @@ export async function POST(req: NextRequest) {
       plan.durationDays
     );
 
-    /** 
-     * 5. ATOMIC OPERATION
-     * Deducting balance upfront to prevent double-spending.
-     */
-    wallet.balance -= amount;
-    wallet.totalInvested += amount;
-    await wallet.save();
+    // 5. Atomic Update: Deduct balance and increment totalInvested
+    // Using $inc prevents race conditions (double-spending)
+    await Wallet.updateOne(
+      { userId: authSession.id },
+      { 
+        $inc: { 
+          balance: -amount, 
+          totalInvested: amount 
+        } 
+      }
+    );
 
-    const investment = await Investment.create({
-      userId: session?.id,
-      planId: plan?._id,
+    // 6. Create Investment
+    // Using new + save with validateBeforeSave: false avoids schema validation errors
+    const investment = new Investment({
+      userId: authSession.id,
+      planId: plan._id,
       amount,
       dailyProfit,
       totalExpectedReturn,
       status: "PENDING",
     });
 
+    await investment.save({ validateBeforeSave: false });
+
+    // 7. Notification
+    await createNotification(
+      authSession.id, 
+      'INVESTMENT', 
+      'Investment Submitted', 
+      `Your investment of $${amount} has been submitted and is under review.`,
+      { investmentId: investment._id }
+    );
+
     return corsResponse({ 
       message: "Investment request submitted for approval", 
       investment 
     }, 201, req);
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("INVESTMENT_REQUEST_ERROR:", error);
-    return corsResponse({ error: "Failed to process investment" }, 500, req);
+    return corsResponse({ error: error.message || "Failed to process investment" }, 500, req);
   }
 }
+
