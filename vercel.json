@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/market-sync",
-      "schedule": "* * * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }
