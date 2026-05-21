@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const ALLOWED_ORIGINS = [
-  process.env.FRONTEND_URL || "https://roi-frontend-believe.vercel.app",
+  process.env.FRONTEND_URL || "https://teslainfrastructure.com" || "https://roi-frontend-believe.vercel.app",
+    "https://teslainfrastructure.com/api",
+  "https://teslainfrastructure.com",
   "https://roi-frontend-believe.vercel.app",
   "https://roi-frontend-believe.vercel.app/api",
   "http://localhost:3000",
