@@ -25,6 +25,5 @@ export async function updateWalletBalance(
     status: "COMPLETED",
     reference: `WAL-${Date.now()}`
   });
-
   return wallet;
 }
