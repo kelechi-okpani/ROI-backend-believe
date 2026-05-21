@@ -17,7 +17,6 @@ export async function updateWalletBalance(
     { $inc: { [type]: amount } },
     { new: true, upsert: true }
   );
-
   // 2. Create the Ledger (Transaction Record)
   await Transaction.create({
     userId,
