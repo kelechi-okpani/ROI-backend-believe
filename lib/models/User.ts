@@ -34,7 +34,10 @@ const UserSchema = new Schema(
     
     isEmailVerified: { type: Boolean, default: false },
     twoFactorEnabled: { type: Boolean, default: false },
-    referralCode: { type: String, unique: true },
+    referralCode: {
+       type: String,
+  unique: true,
+  sparse: true,},
     referredBy: { type: String }, // Stores the referral code of the inviter
     wallet: { type: Schema.Types.ObjectId, ref: "Wallet" },
   },

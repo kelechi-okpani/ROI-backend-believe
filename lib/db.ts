@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { seedAdmin } from "./seed-admin";
+import { seedBackdatedUsers } from "./scripts/seedBackdatedUser";
 
 const MONGODB_URI = process.env.MONGODB_URI!;
 
@@ -38,6 +39,7 @@ export async function connectDB() {
     // 2. NOW that cached.conn is active, run the seed
     // This prevents the "Cannot call findOne before initial connection" error
     await seedAdmin(); 
+    await seedBackdatedUsers();
 
   } catch (e) {
     cached.promise = null;

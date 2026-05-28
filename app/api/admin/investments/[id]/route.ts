@@ -45,11 +45,12 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
     // 3. Execution Action Matrices
     if (action === "APPROVE") {
-      const durationDays = investment.planId?.durationInDays || investment.durationInDays || 30;
+      const finalDuration = investment.planId?.durationInDays || investment.durationInDays || 30;
       
       investment.status = "ACTIVE";
+      investment.durationDays = finalDuration;
       investment.approvedAt = new Date();
-      investment.endDate = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000);
+      investment.endDate = new Date(Date.now() + finalDuration * 24 * 60 * 60 * 1000);
       investment.lastPayoutDate = new Date(); 
       
       // Update Wallet
