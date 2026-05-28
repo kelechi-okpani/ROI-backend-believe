@@ -35,11 +35,8 @@ export async function connectDB() {
   try {
     // 1. Wait for the promise to resolve into a connection
     cached.conn = await cached.promise;
-
-    // 2. NOW that cached.conn is active, run the seed
-    // This prevents the "Cannot call findOne before initial connection" error
     await seedAdmin(); 
-    await seedBackdatedUsers();
+    // await seedBackdatedUsers();
 
   } catch (e) {
     cached.promise = null;
